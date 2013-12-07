@@ -16,3 +16,5 @@ $ echo ’Defaults:nagios !requiretty ’ >> /etc/sudoers
 $ echo ’nagios ALL=(root) NOPASSWD:/usr/local/nagios/libexec/∗’ >> /etc/sudoers
 ```
 
+If that is the case be sure to limit write permissions for the scripts so that
+one cannot simply update the scripts with malicious code.
