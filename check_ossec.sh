@@ -23,10 +23,10 @@ WARNING=1
 CRITICAL=2
 UNKNOWN=3
 
-# Default Location of the binaries (Modified to /usr/ossec for TOC)
+# Default Location of the binaries
 # Set these to the proper location if your installation differs
-AGENT_CONTROL=/usr/ossec/bin/agent_control
-OSSEC_CONTROL=/usr/ossec/bin/ossec-control
+AGENT_CONTROL=/var/ossec/bin/agent_control
+OSSEC_CONTROL=/var/ossec/bin/ossec-control
 
 if [ ! -f $AGENT_CONTROL ] && [ ! -f $OSSEC_CONTROL ];
 then
@@ -106,7 +106,7 @@ do
              CHECK_THRESHOLD=1
              VOL="$OPTARG"
              ;;
-         w) 
+         w)
              WARN="$OPTARG"
              ;;
          \?)
@@ -121,7 +121,7 @@ if [ $LIST_AGENTS -eq 1 ]; then
 fi
 
 if [ $SERVER_CHECK -eq 1 ]; then
-        
+
         $OSSEC_CONTROL status | grep -v $EXCLUDE | grep "not running"
 
         if [ $? -eq 0 ]; then
@@ -135,7 +135,7 @@ fi
 
 if [ $CHECK_AGENT -eq 1 ]; then
 
-        for host in $(echo $AGENT | sed 's/,/ /g'); 
+        for host in $(echo $AGENT | sed 's/,/ /g');
         do
                 RESULT=$($AGENT_CONTROL -l | grep ${host},)
 
@@ -144,12 +144,12 @@ if [ $CHECK_AGENT -eq 1 ]; then
                 *Disconnected)
                         echo "Agent $host is not connected!"
                         DISCONNECTED=$((DISCONNECTED+1))
-                        ;; 
+                        ;;
                 *Active)
                         echo "Agent $host is connected"
                         CONNECTED=$((CONNECTED+1))
                         ;;
-                *Never*) 
+                *Never*)
                         echo "Agent $host has never connected to the server: $RESULT"
                         NEVERCONNECTED=$((NEVERCONNECTED+1))
                         ;;
@@ -159,11 +159,11 @@ if [ $CHECK_AGENT -eq 1 ]; then
                         ;;
                 esac
         done
-        
+
         if [ $DISCONNECTED -gt 0 ] || [ $NEVERCONNECTED -gt 0 ] || [ $UNKNOWN -gt 0 ]; then
                 echo "-> $DISCONNECTED disconnected agent(s), $NEVERCONNECTED never connected agent(s), and $UNKNOWN agent(s) with unknown status (possible agent name typo?)."
                 exit $CRITICAL
-        else 
+        else
                 echo "All requested ($CONNECTED) agents are connected to the server!"
                 exit $OK
         fi
@@ -171,7 +171,7 @@ fi
 
 
 if [ $CHECK_THRESHOLD -eq 1 ]; then
-        
+
         ACTIVE=$($AGENT_CONTROL -l | grep Active | wc -l)
         INACTIVE=$($AGENT_CONTROL -l | grep Disconnected | wc -l)
         NEVER=$($AGENT_CONTROL -l | grep Never | wc -l)
