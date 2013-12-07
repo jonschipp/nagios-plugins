@@ -26,18 +26,18 @@ one cannot simply update the scripts with malicious code.
 
 #### Heterogenous Unix (Unices):
 
-check_load.sh - Check a system's load (run queue) via ``uptime''.
-check_service.sh - Check the status of a system service
-check_volume.sh - Check free space for a volume or partition
-check_file_growth - Check whether a file is growing in size (e.g. Monitor for stale log files)
+**check_load.sh** - Check a system's load (run queue) via ``uptime''.
+**check_service.sh** - Check the status of a system service
+**check_volume.sh** - Check free space for a volume or partition
+**check_file_growth** - Check whether a file is growing in size (e.g. Monitor for stale log files)
 
 #### OSX only:
 
-check_osx_raid.sh - Check RAID status of a disk. (Find degraded and failing arrays)
-check_osx_smart.sh - Check S.M.A.R.T status of a disk. (Find failing disks)
-check_osx_temp.sh - Check temperature of system components. (Find systems running hot)
+**check_osx_raid.sh** - Check RAID status of a disk. (Find degraded and failing arrays)
+**check_osx_smart.sh** - Check S.M.A.R.T status of a disk. (Find failing disks)
+**check_osx_temp.sh** - Check temperature of system components. (Find systems running hot)
 
 #### Application specific:
 
-check_ossec.sh - Perform multiple checks for a OSSEC server (e.g. Find a disconnected agent)
-check_bro.sh - Perform multiple checks for a Bro cluster (e.g. Find stopped workers)
+**check_ossec.sh** - Perform multiple checks for a OSSEC server (e.g. Find a disconnected agent)
+**check_bro.sh** - Perform multiple checks for a Bro cluster (e.g. Find stopped workers)
