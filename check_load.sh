@@ -107,7 +107,7 @@ OK_STATUS=0
 
 argcheck 1
 
-while getopts "hac:o:p:" OPTION
+while getopts "hac:o:p:w:" OPTION
 do
      case $OPTION in
          h)
