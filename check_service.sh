@@ -33,7 +33,7 @@ Check status of system services for Linux, FreeBSD, OSX, and AIX.
         -u <user>       User if you need to ``sudo -u'' for launchctl (def: nagios, osx only)
         -t <tool>       Manually specify service management tool (def: autodetect) with status and service
                         e.g. ``-t "service nagios status"''
-                        
+
 
 EOF
 }
@@ -82,7 +82,7 @@ if [[ $OS == freebsd ]]; then
                 LISTTOOL="service -l"
         elif [ -f /etc/rc.d/$SERVICE ] || [ -d /etc/rc.d ]; then
                 SERVICETOOL="/etc/rc.d/$SERVICE status"
-                LISTTOOL="ls -1 /etc/rc.d/"     
+                LISTTOOL="ls -1 /etc/rc.d/"
         else
                 echo "Unable to determine the system's service tool!"
                 exit 1
@@ -145,10 +145,10 @@ do
          l)
              LIST=1
              ;;
-         s) 
+         s)
              SERVICE="$OPTARG"
              ;;
-         o) 
+         o)
              if [[ "$OPTARG" == linux ]]; then
                      OS="$OPTARG"
              elif [[ "$OPTARG" == osx ]]; then
@@ -179,12 +179,12 @@ os_check
 determine_service_tool
 
 if [ $LIST -eq 1 ]; then
-        if [[ $LISTTOOL != null ]]; then 
+        if [[ $LISTTOOL != null ]]; then
                 $LISTTOOL
                 exit 0
         else
                 echo "OS not specified! Use \`\`-o''"
-                exit 2  
+                exit 2
         fi
 fi
 
@@ -236,27 +236,31 @@ case $STATUS_MSG in
 *[cC]annot*)
         echo "$STATUS_MSG"
         exit $CRITICAL
-        ;; 
+        ;;
 *inactive*)
         echo "$STATUS_MSG"
         exit $CRITICAL
-        ;; 
+        ;;
 *dead*)
         echo "$STATUS_MSG"
         exit $CRITICAL
-        ;; 
+        ;;
 *[aA]ctive*)
         echo "$STATUS_MSG"
         exit $OK
-        ;; 
+        ;;
 *Subsystem*not*on*file)
         echo "$STATUS_MSG"
         exit $CRITICAL
-        ;; 
+        ;;
 [1-9][1-9]*)
         echo "$SERVICE running: $STATUS_MSG"
         exit $OK
         ;;
+"")
+	echo "$SERVICE is not running: no output from service command"
+	exit $CRITICAL
+	;;
 *)
         echo "Unknown status: $STATUS_MSG"
         echo "Is there a typo in the command or service configuration?: $STATUS_MSG"
