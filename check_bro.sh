@@ -265,20 +265,20 @@ if [ $CAPTURE_LOSS_CHECK -eq 1 ]; then
                  }
 
                 END {
-                        if ( loss >= 1 ) {
-				print "\n--------------------\n"loss,"instances of loss with",threshold,"exceeding the threshold ("crit"%).";
-                                exit 2
+			 if ( loss >= 1 ) {
+                                print "\n--------------------\n"loss,"instances of loss with",threshold,"exceeding the threshold ("crit"%).";
+                                if ( threshold > 0 ) {
+                                        exit 2
+                                }
+                                exit 0
                         }
                 else
                          print "\nNo loss detected"; }' $CAPTURE_LOG
 
-        if [ $? -eq 2 ]; then
+	if [ $? -eq 2 ]; then
                 exit $CRITICAL
-        elif [ $? -eq 0 ]; then
-                exit $OK
         else
-                echo "Unknown status code: $?"
-                exit $UNKNOWN
+                exit $OK
         fi
 fi
 
