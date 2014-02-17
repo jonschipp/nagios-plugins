@@ -59,12 +59,12 @@ This script should be run on the Bro manager.
                                 myricom - Average Myricom Sniffer driver packet loss by IP or FQDN for a single-
 					 (\`\`-i 192.168.1.1'') or set (\`\`-i "192.168.1.1,192.168.1.2") of Bro nodes
                                          Connects to nodes via SSH (pub-key auth). If username is not root use ``-u''.
-                                print   - Print Bro values 
+                                print   - Print Bro values
         -u <user>               Username for the myricom check (def: root)
         -w <int>                Warning threshold as percent of packet loss
 
 Usage: $0 -f /usr/local/bro-dev/bin/brotcl -T status
-$0 -f /usr/local/bro-2.2/logs/current/capture_loss.log -T capture_loss -c 20 
+$0 -f /usr/local/bro-2.2/logs/current/capture_loss.log -T capture_loss -c 20
 EOF
 }
 
@@ -113,7 +113,7 @@ do
              elif [[ $1 == *myri_counters ]]; then
                 MYRI_COUNTERS=$1
              elif [[ $1 == *capture_loss.log ]]; then
-                CAPTURE_LOG=$1  
+                CAPTURE_LOG=$1
              else
                 echo "File name appears to be incorrect, maybe try setting the approprate variable in $0."
              fi
@@ -124,15 +124,15 @@ do
              ;;
          l)
             LIST_NODES=1
-            ;; 
+            ;;
          i)
              if [ $LOSS_CHECK -eq 1 ] && [[ "$OPTARG" == all ]]; then
                      WORKERS=".*"
-             elif [ $LOSS_CHECK -eq 1 ]; then    
+             elif [ $LOSS_CHECK -eq 1 ]; then
                      WORKERS=$(echo "$OPTARG" | sed 's/,/:\\|/g')
              elif [ $MYRI_CHECK -eq 1 ]; then
                      NODE=$(echo "$OPTARG" | sed 's/,/ /g')
-             else 
+             else
                      echo "ERROR: Argument is in incorrect format or \`\`-T <type>'' was not specified first"
                      exit $UNKOWN
              fi
@@ -142,7 +142,7 @@ do
                 ;;
          T)
              if [[ "$OPTARG" == status ]]; then
-                        STATUS_CHECK=1 
+                        STATUS_CHECK=1
              elif [[ "$OPTARG" == myricom ]]; then
                         MYRI_CHECK=1
              elif [[ "$OPTARG" == loss ]]; then
@@ -183,22 +183,22 @@ if [ $LIST_NODES -eq 1 ]; then
 fi
 
 if [ $LOSS_CHECK -eq 1 ]; then
-       
+
  # Total average packet loss as a percent for specified workers
 
 FLOAT_LOSS=$($BROCTL netstats | grep "$WORKERS" | sed 's/[a-z]*=//g' | awk '{ drop += $4 ; link += $5 } END { printf("%f\n", ((drop/NR) / (link/NR))* 100) }')
 LOSS=$(/usr/bin/printf "%d\n" $FLOAT_LOSS 2>/dev/null)
 
         if [ $LOSS -gt $CRIT ] ;then
-                
+
                 echo "Average packet loss is: $FLOAT_LOSS"
                 exit $CRITICAL
 
         elif [ $LOSS -gt $WARN ]; then
-                
+
                 echo "Average packet loss is: $FLOAT_LOSS"
                 exit $WARNING
-        else 
+        else
                 echo "Average packet loss is: $FLOAT_LOSS"
                 exit $OK
         fi
@@ -211,18 +211,18 @@ if [ $STATUS_CHECK -eq 1 ]; then
 # Broctl stderr is whitespace separated and we need to match on entire line
 IFS=$'\n'
 
-        for line in $($BROCTL status 2>&1 | grep -v Name)
-        do      
+        for line in $($BROCTL status 2>&1 | grep -v 'Name\|waiting')
+        do
                 NAME=$(echo "$line" | awk '{ print $1 }')
-                case "$line" in 
+                case "$line" in
                 *stop*)
                         echo "$NAME has stopped"
                         STOPPED=$((STOPPED+1))
-                        ;; 
+                        ;;
                 *fail*)
                         echo "$NAME has crashed"
                         CRASHED=$((CRASHED+1))
-                        ;; 
+                        ;;
                 *run*)
                         echo "$NAME is running"
                         RUNNING=$((RUNNING+1))
@@ -233,41 +233,41 @@ IFS=$'\n'
                         ;;
                 esac
         done
-        
+
         if [ $STOPPED -gt 0 ] || [ $CRASHED -gt 0 ] || [ $UNKNOWN -gt 0 ]; then
                 echo "-> $STOPPED stopped workers, $CRASHED crashed workers, $RUNNING running workers, and $UNKNOWN workers with an unknown status"
                 exit $CRITICAL
-        else 
+        else
                 echo "All $RUNNING instances are running!"
                 exit $OK
         fi
-        
+
 fi
 
 if [ $CAPTURE_LOSS_CHECK -eq 1 ]; then
-        
+
         if [ ! -f $CAPTURE_LOG ]; then
                 echo "capture_loss.log cannot be found, modify CAPTURE_LOG in $0 or use \`\`-f''"
                 exit $UNKNOWN
         fi
-        
+
         INTERVAL=$(awk 'NR == 9 { printf("%d\n", $2) }' $CAPTURE_LOG)
         TIME=$(date +"%s")
         RECENT=$(echo $((TIME-INTERVAL)))
 
         awk -v recent=$RECENT -v crit=$CRIT -v loss=0 -v threshold=0 '! /^#/ && $1 > recent && $4 > 0 \
-                 { 
-                        loss++; decimal=sprintf("%d", $6); 
+                 {
+                        loss++; decimal=sprintf("%d", $6);
                         if ( strtonum(decimal) > crit ) {
 				threshold++
                                 print "Peer: "$3,"\t","Loss:", $6;
 			}
                  }
 
-                END { 
-                        if ( loss >= 1 ) { 
+                END {
+                        if ( loss >= 1 ) {
 				print "\n--------------------\n"loss,"instances of loss with",threshold,"exceeding the threshold ("crit"%).";
-                                exit 2 
+                                exit 2
                         }
                 else
                          print "\nNo loss detected"; }' $CAPTURE_LOG
@@ -279,13 +279,13 @@ if [ $CAPTURE_LOSS_CHECK -eq 1 ]; then
         else
                 echo "Unknown status code: $?"
                 exit $UNKNOWN
-        fi      
+        fi
 fi
 
 if [ $PRINT_CHECK -eq 1 ]; then
 
         $BROCTL print $PRINT
-        
+
         exit $OK
 fi
 
@@ -302,7 +302,7 @@ AVERAGE=0
                 echo "ERROR: myri_counters has not been found. Update the MYRI_COUNTERS variable in $0 or specify the path with \`\`-f''"
                 exit $UNKOWN
         fi
-        
+
         for node in $NODE
         do
                 MYRI_STATS=$(ssh -l $USER $node $MYRI_COUNTERS | awk -F : '/SNF drop ring full|SNF recv pkts/ { print $2 }' | sed 's/[ \t]*//')
@@ -313,23 +313,23 @@ AVERAGE=0
                 COUNT=$((COUNT+1))
                 echo "$node: Lost $LOSS of $RECV"
         done
-        
+
         echo "--------------------"
-        
-        # Average       
+
+        # Average
         FLOAT_LOSS=$(echo "(($LOSS_TOT / $COUNT) / ($RECV_TOT / $COUNT)) * 100" | bc -l)
         LOSS=$(/usr/bin/printf "%d\n" $FLOAT_LOSS 2>/dev/null)
-        
+
         if [ $LOSS -gt $CRIT ]; then
-                
+
                 echo "Average packet loss is: $FLOAT_LOSS"
                 exit $CRITICAL
 
         elif [ $LOSS -gt $WARN ]; then
-                
+
                 echo "Average packet loss is: $FLOAT_LOSS"
                 exit $WARNING
-        else 
+        else
                 echo "Average packet loss is: $FLOAT_LOSS"
                 exit $OK
         fi
