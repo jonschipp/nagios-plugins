@@ -46,7 +46,7 @@ This script should be run on the OSSEC server.
         -c <int>        Critical threshold for number of inactive agents
         -l              List all agents
         -s <service>    Check status of OSSEC server processes. Use ``-s all'' to check all.
-                        To exclude a service e.g execd pass as argument i.e. ``-s execd''
+			To exclude a service(s) e.g pass as comma separated argument i.e. ``-s "execd,maild''
         -w              Warning threshold for number of inactive agents
 
 Usage: $0 -a "server1,server2,station3"
@@ -100,7 +100,7 @@ do
              ;;
          s)
              SERVER_CHECK=1
-             EXCLUDE="$OPTARG"
+	     EXCLUDE=$(echo $OPTARG | sed 's/,/|/g')
              ;;
          v)
              CHECK_THRESHOLD=1
@@ -122,7 +122,7 @@ fi
 
 if [ $SERVER_CHECK -eq 1 ]; then
 
-        $OSSEC_CONTROL status | grep -v $EXCLUDE | grep "not running"
+        $OSSEC_CONTROL status | grep -v -E "$EXCLUDE" | grep "not running"
 
         if [ $? -eq 0 ]; then
                 echo "An OSSEC service is not running!"
