@@ -59,9 +59,9 @@ do
         case $ARG in
 		d) DOWN_CHECK=1
                    ;;
-		e) EXCLUDE=$(echo $OPTARG| sed 's/,/|/')
+		e) EXCLUDE=$(echo $OPTARG| sed 's/,/|/g')
 	           ;;
-		q) QUEUE=$(echo $OPTARG| sed 's/,/|/')
+		q) QUEUE=$(echo $OPTARG| sed 's/,/|/g')
                    ;;
                 s) STATUS=$OPTARG
 		   STATUS_CHECK=1
