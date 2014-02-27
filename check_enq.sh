@@ -7,6 +7,12 @@
 
 # 1.) Return critical if any queue is in the DOWN state
 # $ ./check_enq.sh -d
+#
+# 2.) Return critical if any queue is in the DOWN state except those listed
+# $ ./check_enq.sh -d -e "color,black,invoice"
+#
+# 3.) Return critical if color is in DOWN state
+# $ ./check_enq.sh -d -q color
 
 # Nagios Exit Codes
 OK=0
