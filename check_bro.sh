@@ -92,7 +92,7 @@ RECV=0
 RUNNING=0
 STOPPED=0
 CRASHED=0
-UNKNOWN=0
+UNKNOWN_WORKER=0
 WORKERS=all
 EXCLUDE=none
 ARGC=$#
@@ -229,13 +229,13 @@ IFS=$'\n'
                         ;;
                 *)
                         echo "Unknown status of worker: $NAME"
-                        UNKNOWN=$((UNKNOWN+1))
+                        UNKNOWN_WORKER=$((UNKNOWN_WORKER+1))
                         ;;
                 esac
         done
 
-        if [ $STOPPED -gt 0 ] || [ $CRASHED -gt 0 ] || [ $UNKNOWN -gt 0 ]; then
-                echo "-> $STOPPED stopped workers, $CRASHED crashed workers, $RUNNING running workers, and $UNKNOWN workers with an unknown status"
+        if [ $STOPPED -gt 0 ] || [ $CRASHED -gt 0 ] || [ $UNKNOWN_WORKER -gt 0 ]; then
+                echo "-> $STOPPED stopped workers, $CRASHED crashed workers, $RUNNING running workers, and $UNKNOWN_WORKER workers with an unknown status"
                 exit $CRITICAL
         else
                 echo "All $RUNNING instances are running!"
