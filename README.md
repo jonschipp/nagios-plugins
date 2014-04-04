@@ -7,7 +7,7 @@ A few of the scripts like check_service.sh and check_volume.sh are designed to
 be run in heterogenous unix environments and should work on Linux, OSX, AIX, and
 the BSD's provided a bash or bash-compatible shell to interpret them.
 
-Each script has detailed usage presentable via the ``-h'' option and some of
+Each script has detailed usage presentable via the `-h` option and some of
 scripts include extended usage examples within the top commented section of the script.
 
 One way to run the plugins requiring elevated privileges is to
