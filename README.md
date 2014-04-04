@@ -32,8 +32,11 @@ one cannot simply update the scripts with malicious code.
 
 **check_volume.sh** - Check free space for a volume or partition.
 
-**check_file_growth** - Check whether a file is growing in size (e.g. Monitor for stale log files).
+**check_file_growth.sh** - Check whether a file is growing in size (e.g. Monitor for stale log files).
 
+**check_filesystem_stat.sh** - Recursively checks for filesystem input/output errors by directory using stat.
+
+**check_status_code.sh** - Checks exit code of another program and returns a custom Nagios status code based on the result.
 
 #### OSX only:
 
@@ -43,9 +46,19 @@ one cannot simply update the scripts with malicious code.
 
 **check_osx_temp.sh** - Check temperature of system components. (Find systems running hot).
 
+#### Linux only:
+
+**check_connections.sh** - Check number of connections/sockets in a given state. Requires iproute2. (Find 10000+ EST connections)
+
+**check_pps.sh** - Check PPS, BPS, or percentage of line-rate on a networking interface (Find periods of heavy traffic)
 
 #### Application specific:
 
 **check_ossec.sh** - Perform multiple checks for a OSSEC server (e.g. Find a disconnected agent).
 
 **check_bro.sh** - Perform multiple checks for a Bro cluster (e.g. Find stopped workers).
+
+**check_enq.sh** - Check status of a printer queue on AIX (Find queues in DOWN state)
+
+**check_rsyslog.sh** - Check for rsyslog disk queue buffers (Find when logs are buffered)
+
