@@ -6,10 +6,10 @@
 # Examples:
 
 # 1.) Check status code for uptime using the defaults
-# $ ./check_status_code.sh -r /usr/bin/uptime
-# 
+# $ ./check_negate.sh -r /usr/bin/uptime
+#
 # 2.) Custom service does it backwards and exits 1 when running and 0 when stopped.
-# $ ./check_status_code.sh -r "/usr/sbin/service custom-server status" -o 1 -c 0 
+# $ ./check_negate.sh -r "/usr/sbin/service custom-server status" -o 1 -c 0
 
 # Nagios Exit Codes
 NAGIOS_OK=0
@@ -67,17 +67,17 @@ do
 		     RUN="$OPTARG"
 	     fi
              ;;
-         o) 
+         o)
              OK=$OPTARG
              ;;
-         w) 
-	     WARNING=$OPTARG   
+         w)
+	     WARNING=$OPTARG
              ;;
-         c) 
-	     CRITICAL=$OPTARG   
+         c)
+	     CRITICAL=$OPTARG
              ;;
-         u) 
-	     UNKNOWN=$OPTARG   
+         u)
+	     UNKNOWN=$OPTARG
              ;;
          \?)
              exit 1
@@ -89,10 +89,10 @@ COMMAND=$(echo $RUN | sed 's/ .*//')
 
 if ! [ -x $COMMAND ]; then
 	echo "Error: $COMMAND does not exist, is not an absolute path,  or is not executable."
-	exit 1	
+	exit 1
 fi
 
-$RUN 
+$RUN
 
 CODE=$?
 
@@ -102,7 +102,7 @@ elif [ $CODE -eq $WARNING ]; then
 	exit $NAGIOS_WARNING
 elif [ $CODE -eq $CRITICAL ]; then
 	exit $CRITICAL
-elif [ $CODE -eq $UNKNOWN ]; then 
+elif [ $CODE -eq $UNKNOWN ]; then
 	exit $NAGIOS_UNKNOWN
 else
 	echo "Exit code not understood: $CODE"
