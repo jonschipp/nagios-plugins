@@ -90,7 +90,7 @@ if [[ $OS == freebsd ]]; then
 fi
 
 if [[ $OS == osx ]]; then
-        if [ -f /usr/sbin/serveradmin >/dev/null 2>&1 ] && serveradmin list | grep "$SERVICE" 2>&1 >/dev/null; then
+        if command -v serveradmin >/dev/null 2>&1 && serveradmin list | grep "$SERVICE" 2>&1 >/dev/null; then
                 SERVICETOOL="serveradmin status $SERVICE"
                 LISTTOOL="serveradmin list"
         elif command -v launchctl >/dev/null 2>&1; then
