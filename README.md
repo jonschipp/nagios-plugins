@@ -36,7 +36,7 @@ one cannot simply update the scripts with malicious code.
 
 **check_filesystem_stat.sh** - Recursively checks for filesystem input/output errors by directory using stat.
 
-**check_status_code.sh** - Checks exit code of another program and returns a custom Nagios status code based on the result.
+**negate.sh** - Checks exit code of another program and returns a custom Nagios status code based on the result.
 
 #### OSX only:
 
