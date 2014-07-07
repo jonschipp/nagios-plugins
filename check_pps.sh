@@ -107,6 +107,12 @@ WARN=0
 CRIT=0
 ARGC=$#
 
+# Check for dependency filesystems
+if ! [ -d /sys ] || ! [ -d /proc ]; then
+	echo "$0 requires sysfs and procfs"
+	exit $UNKNOWN
+fi
+
 # Print warning and exit if less than n arguments specified
 argcheck 1
 
