@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 # Author: Jon Schipp
+# 2015-03-09 [Pascal Hegy] - Add sudo for linux
+# 2015-03-09 [Pascal Hegy] - Change USER variable to USERNAME to avoid the use and confusion with the USER env variable
 
 ########
 # Examples:
@@ -30,7 +32,7 @@ Check status of system services for Linux, FreeBSD, OSX, and AIX.
         -s <service>    Specify service name
         -l              List services
         -o <os>         OS type, "linux/osx/freebsd/aix"
-        -u <user>       User if you need to ``sudo -u'' for launchctl (def: nagios, osx only)
+        -u <user>       User if you need to ``sudo -u'' for launchctl (def: nagios, linux and osx only)
         -t <tool>       Manually specify service management tool (def: autodetect) with status and service
                         e.g. ``-t "service nagios status"''
 
@@ -58,18 +60,38 @@ if [[ $OS == linux ]]; then
         if command -v systemctl >/dev/null 2>&1; then
                 SERVICETOOL="systemctl status $SERVICE"
                 LISTTOOL="systemctl"
+                if [ $USERNAME ]; then
+                    SERVICETOOL="sudo -u $USERNAME systemctl status $SERVICE"
+                    LISTTOOL="sudo -u $USERNAME systemctl"
+                fi
         elif command -v initctl >/dev/null 2>&1; then
                 SERVICETOOL="status $SERVICE"
                 LISTTOOL="initctl list"
+                if [ $USERNAME ]; then
+                    SERVICETOOL="sudo -u $USERNAME status $SERVICE"
+                    LISTTOOL="sudo -u $USERNAME initctl list"
+                fi
         elif command -v service >/dev/null 2>&1; then
                 SERVICETOOL="service $SERVICE status"
                 LISTTOOL="service --status-all"
+                if [ $USERNAME ]; then
+                    SERVICETOOL="sudo -u $USERNAME service $SERVICE status"
+                    LISTTOOL="sudo -u $USERNAME service --status-all"
+                fi
         elif command -v chkconfig >/dev/null 2>&1; then
                 SERVICETOOL=chkconfig
                 LISTTOOL="chkconfig --list"
+                if [ $USERNAME ]; then
+                    SERVICETOOL="sudo -u $USERNAME chkconfig"
+                    LISTTOOL="sudo -u $USERNAME chkconfig --list"
+                fi
         elif [ -f /etc/init.d/$SERVICE ] || [ -d /etc/init.d ]; then
                 SERVICETOOL="/etc/init.d/$SERVICE status | tail -1"
                 LISTTOOL="ls -1 /etc/init.d/"
+                if [ $USERNAME ]; then
+                    SERVICETOOL="sudo -u $USERNAME /etc/init.d/$SERVICE status | tail -1"
+                    LISTTOOL="sudo -u $USERNAME ls -1 /etc/init.d/"
+                fi
         else
                 echo "Unable to determine the system's service tool!"
                 exit 1
@@ -101,9 +123,9 @@ if [[ $OS == osx ]]; then
         elif command -v launchctl >/dev/null 2>&1; then
                 SERVICETOOL="launchctl list | grep -v ^- | grep $SERVICE || echo $SERVICE not running! "
                 LISTTOOL="launchctl list"
-                if [ $(id -u) -eq 0 ]; then
-                        SERVICETOOL="sudo -u $USER launchctl list | grep -v ^- | grep $SERVICE || echo $SERVICE not running! "
-                        LISTTOOL="sudo -u $USER launchctl list"
+                if [ $USERNAME ]; then
+                        SERVICETOOL="sudo -u $USERNAME launchctl list | grep -v ^- | grep $SERVICE || echo $SERVICE not running! "
+                        LISTTOOL="sudo -u $USERNAME launchctl list"
                 fi
         elif command -v service >/dev/null 2>&1; then
                 SERVICETOOL="service --test-if-configured-on $SERVICE"
@@ -136,7 +158,7 @@ OS=null
 SERVICETOOL=null
 LISTTOOL=null
 SERVICE=".*"
-USER=nagios
+#USERNAME=nagios
 
 argcheck 1
 
@@ -172,7 +194,7 @@ do
              MANUALSERVICETOOL="$OPTARG"
              ;;
          u)
-             USER="$OPTARG"
+             USERNAME="$OPTARG"
              ;;
          \?)
              exit 1
