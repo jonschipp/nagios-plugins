@@ -64,7 +64,7 @@ determine_command () {
 if [[ "$OS" == osx ]]; then
 	UPTIME=$(uptime | awk -F : '{ print $4 }')
 elif [[ "$OS" == linux ]]; then
-	UPTIME=$(uptime | awk -F : '{ print $5 }' | sed 's/,//g')
+	UPTIME=$(uptime | awk -F : '{ print $4 }' | sed 's/,//g')
 elif [[ "$OS" == freebsd ]]; then
 	UPTIME=$(uptime | awk -F : '{ print $4 }' | sed 's/,//g')
 elif [[ "$OS" == aix ]]; then
