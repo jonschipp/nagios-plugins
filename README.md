@@ -36,6 +36,8 @@ one cannot simply update the scripts with malicious code.
 
 **check_filesystem_stat.sh** - Recursively checks for filesystem input/output errors by directory using stat.
 
+**check_traffic.sh** - Check rate of  traffic type by bpf using tcpdump for interface
+
 **negate.sh** - Checks exit code of another program and returns a custom Nagios status code based on the result.
 
 #### OSX only:
