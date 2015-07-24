@@ -5,15 +5,9 @@
 ########
 # Examples:
 
-# 1.) Return critical if there's more than 10k PPS
-# $ ./check_pps.sh -i eth0 -w 8000 -c 10000  -p
-#
-# 2.) Return critical if there's more than 1m BPS
-# $ ./check_pps.sh -i eth0 -w 500000 -c 1000000 -b
-#
-# 2.) Return critical if we've reach 70% of the NIC's line-rate capacity
-# $ ./check_pps.sh -i eth0 -w 50 -c 70 -r
-#
+# 1.) Check syslog traffic rate
+# $ ./check_traffice.sh -i eth0 -f "port 514" -t 1s -w 500 -c 1000
+
 
 # Nagios Exit Codes
 OK=0
