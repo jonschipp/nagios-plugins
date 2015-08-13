@@ -207,7 +207,7 @@ if [ $STATUS_CHECK -eq 1 ]; then
 # Broctl stderr is whitespace separated and we need to match on entire line
 IFS=$'\n'
 
-  for line in $($BROCTL status 2>&1 | grep -v 'Name\|waiting')
+  for line in $($BROCTL status 2>&1 | grep -v 'Name\|waiting\|Getting')
   do
     NAME=$(echo "$line" | awk '{ print $1 }')
     case "$line" in
