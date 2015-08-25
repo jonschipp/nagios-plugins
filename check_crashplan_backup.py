@@ -12,7 +12,7 @@ url = 'https://crashplan.company.com:4285/api/DeviceBackupReport?active=true&srt
 nagios_ok       = 0
 nagios_warning  = 1
 nagios_critical = 2
-nagios_unknown  = 4
+nagios_unknown  = 3
 
 try:
   f = open(filename, "r")
