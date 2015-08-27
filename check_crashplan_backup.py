@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-import requests
+import sys
 import datetime
+import requests
 import json
 import imp
-
-filename = '/root/crashplan-credentials-for-nagios.txt'
-# replace host with your crashplan server
-url = 'https://crashplan.company.com:4285/api/DeviceBackupReport?active=true&srtKey=lastConnectedDate'
 
 # Nagios exit codes
 nagios_ok       = 0
@@ -14,34 +11,74 @@ nagios_warning  = 1
 nagios_critical = 2
 nagios_unknown  = 3
 
-try:
-  f = open(filename, "r")
-except IOError:
-  print "Could not open credential file! Does it exist?"
+# Two arguments are required
+if len(sys.argv) < 3:
+  print 'usage: %s <creds_file> <host:port> [deviceName]' % sys.argv[0]
   exit(nagios_unknown)
 
-global data
-creds = imp.load_source('data', '', f)
-f.close()
+filename           = sys.argv[1]
+url                = 'https://' + sys.argv[2] + '/api/DeviceBackupReport?active=true&srtKey=lastConnectedDate'
+critical           = 0 
+single_result      = 0
+max_backup_time    = 2 # notify if backup is older than x days
+status             = 0
 
+if len(sys.argv) == 4:
+  host = sys.argv[3]
+else:
+  host = 0
+
+# Open file
+try:
+  f = open(filename, "r")
+  global data
+  creds = imp.load_source('data', '', f)
+  f.close()
+except IOError:
+  print "Could not open file! Does it exist?"
+  exit(nagios_unknown)
+
+def backup_check(device, orig_time):
+  global status
+  if time < critical_days:
+    print "CRITICAL: %s: LastCompleteBackup: %s" % (device, orig_time)
+    status = nagios_critical
+    
+def format_time(entry, orig_time):
+  global time
+  time = datetime.datetime.strptime(orig_time, "%b %d, %Y %I:%M:%S %p")
+
+def check_all_backup():
+  for entry in data["data"]:
+    device    = entry["deviceName"]
+    orig_time = entry["lastCompletedBackupDate"]
+    if orig_time is None:
+      continue
+    format_time(entry, orig_time)
+    backup_check(device, orig_time)
+
+def check_host_backup():
+  for entry in data["data"]:
+    device = entry["deviceName"]
+    if device == host:
+      orig_time = entry["lastCompletedBackupDate"]
+      format_time(entry, orig_time)
+      backup_check(device, orig_time)
+
+# Make API request
 r = requests.get(url, auth=(creds.user, creds.password))
 r.raise_for_status()
 
 data  = r.json()
-two_days_ago = datetime.datetime.now() - datetime.timedelta(days=2)
+critical_days = datetime.datetime.now() - datetime.timedelta(days=max_backup_time)
 
-for entry in data["data"]:
-  device = entry["deviceName"]
-  orig_time   = entry["lastCompletedBackupDate"]
-  if orig_time is None:
-    continue
-  time = datetime.datetime.strptime(orig_time, "%b %d, %Y %I:%M:%S %p")
-  if time < two_days_ago:
-    print "CRITICAL: %s: LastCompleteBackup: %s" % (device, orig_time)
-    critical = 1
+if host == 0:
+ check_all_backup()
+else:
+ check_host_backup()
 
-if critical == 1:
+if status == nagios_critical: 
   exit(nagios_critical)
-
-print "OK: All backups have been completed recently" 
-exit(nagios_ok)
+else:
+  print "OK: All backups have been completed recently" 
+  exit(nagios_ok)

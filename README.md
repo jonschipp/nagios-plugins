@@ -64,7 +64,10 @@ one cannot simply update the scripts with malicious code.
 
 **check_rsyslog.sh** - Check for rsyslog disk queue buffers (Find when logs are buffered)
 
-**check_crashplan_backup.py** - Check latest backup times for crashplan server (uses API), notifies if backups hasn't been completed in 48 hours.
-1. Set hostname in url variable in script to crashplan server
-2. Add credentials to text file which script will read: `printf 'user = admin\npassword = ChangeMe\n' > /root/crashplan-credentials-for-nagios.txt`
-3. Use sudo when exucuting script with nagios
+**check_crashplan_backup.py** - Check latest backup times for crashplan server (uses API), notifies if backups hasn't been completed in 48 hours by default
+1. Add credentials to text file which script will read: `printf 'user = admin@company.com\npassword = ChangeMe\n' > /root/crashplan-credentials-for-nagios.txt`
+2. Use
+  a. Check all hosts: `check_crashplan_backup.py /root/crashplan_creds.txt crashplan.company.com:4285`
+  b. Check single host: `check_crashplan_backup.py /root/crashplan_creds.txt crashplan.company.com:4285 server1.company.com`
+3. Use sudo when exucuting script with nagios if you put credentials in a file not readable by nagios user
+4. You can edit the max_backup_time variable in the script to adjust the max number of days w/o backup for critical
