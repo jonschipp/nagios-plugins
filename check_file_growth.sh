@@ -35,15 +35,35 @@ Also, check that a file is growing.
         -c <int>     Critical threshold in bytes
         -w <int>     Warning threshold in bytes
 
-Usage: $0 -f big.log -M stat -T bigger -c 1000000 -w 5000000 -i 30
+     Modifiers:
+       The following path modifiers can be used in \`\`-f''.
+       %m - min, %h - hour, %d - day, %m - month, %Y - full year
+
+Usage: $0 -f /logs/%d/big.log -M stat -T bigger -c 1000000 -w 5000000 -i 30
 EOF
 }
 
-if [ $# -lt 4 ]; 
-then
-	usage
-	exit 1
-fi
+expand_path(){
+  local file
+  file="$1"
+  min=$(date +"%M")
+  hour=$(date +"%H")
+  day=$(date +"%d")
+  month=$(date +"%m")
+  year=$(date +"%Y")
+  file_sub_min="${file/\%M/$min}"
+  file_sub_hour="${file_sub_min/\%H/$hour}"
+  file_sub_day="${file_sub_hour/\%d/$day}"
+  file_sub_month="${file_sub_day/\%m/$month}"
+  file_sub_year="${file_sub_month/\%Y/$year}"
+  FILE="$file_sub_year"
+}
+
+argcheck(){
+  local num
+  num=$1
+  [[ $ARGC -lt $num ]] && { usage && exit 1; }
+}
 
 # Define now to prevent expected number errors
 FILE=/dev/null
@@ -57,119 +77,105 @@ OLD=0
 GROWTH=0
 PROG=wc
 OS=$(uname)
+ARGC=$#
+
+argcheck 4 
 
 while getopts "hc:f:i:M:T:w:" OPTION
 do
-     case $OPTION in
-         h)
-	     usage
-             ;;
-         c)
-	     CRIT="$OPTARG"
-             ;;
-	 f)
-	     FILE="$OPTARG"
-	     ;;
-	 i) 
-	     TIME="$OPTARG"
-	     ;;
-	 M)
-	     PROG="$OPTARG"
-	     if [[ "$OPTARG" == stat ]]; then
-            	PROG="$OPTARG"
-             elif [[ "$OPTARG" == wc ]]; then
-             	PROG="$OPTARG"
-             else
-             	echo "Unknown argument to \`\`-M''! Choose wc or stat."
-             	exit 1
-	     fi
-	     ;;
-         v)
-             FILE="$OPTARG"
-             ;;
-	 T)
-	     CONCERN=1
-	     if [[ "$OPTARG" == bigger ]]; then
-            	TYPE="$OPTARG"
-             elif [[ "$OPTARG" == smaller ]]; then
-             	TYPE="$OPTARG"
-             else
-             	echo "Unknown type!"
-             	exit 1
-             fi
-	     ;;
-	 w) 
-	     WARN="$OPTARG"
-	     ;;
-         \?)
-             exit 1
-             ;;
-     esac
+  case $OPTION in
+  h)
+    usage;;
+  c)
+    CRIT="$OPTARG";;
+  f)
+    FILE="$OPTARG";;
+  i) 
+    TIME="$OPTARG";;
+  M)
+    PROG="$OPTARG"
+    if [[ "$OPTARG" == stat ]]; then
+      PROG="$OPTARG"
+    elif [[ "$OPTARG" == wc ]]; then
+      PROG="$OPTARG"
+    else
+      echo "Unknown argument to \`\`-M''! Choose wc or stat."
+      exit 1
+    fi
+    ;;
+  T)
+    CONCERN=1
+    if [[ "$OPTARG" == bigger ]]; then
+   	TYPE="$OPTARG"
+    elif [[ "$OPTARG" == smaller ]]; then
+    	TYPE="$OPTARG"
+    else
+    	echo "Unknown type!"
+    	exit 1
+    fi;;
+  w) 
+      WARN="$OPTARG";;
+  \?)
+      exit 1;;
+  esac
 done
 
-if [ ! -f $FILE ]; then
-	echo "File doesn't exist or is not a regular file!"
-	exit $UNKNOWN
-fi
+expand_path $FILE
 
-if [ $PROG == stat ] && [[ $OS != AIX ]]; then
+ls $FILE 1>/dev/null 2>/dev/null || { echo $FILE doesn\'t exist or is not a regular file\! && exit $CRITICAL; }
 
-	if [[ $OS == Linux ]]; then
-		OLD=$(stat -c %s $FILE)
-		sleep $TIME
-		NEW=$(stat -c %s $FILE)
-	else
-		OLD=$(stat -f %z $FILE)
-		sleep $TIME
-		NEW=$(stat -f %z $FILE)
-	fi
+if [[ $PROG == stat ]] && [[ $OS != AIX ]]; then
+  if [[ $OS == Linux ]]; then
+    OLD=$(stat -c %s $FILE)
+    sleep $TIME
+    NEW=$(stat -c %s $FILE)
+  else
+    OLD=$(stat -f %z $FILE)
+    sleep $TIME
+    NEW=$(stat -f %z $FILE)
+  fi
 else
-	OLD=$(wc -c $FILE | awk '{ print $1}')
-	sleep $TIME
-	NEW=$(wc -c $FILE | awk '{ print $1}')
+  OLD=$(wc -c $FILE | awk '{ print $1}')
+  sleep $TIME
+  NEW=$(wc -c $FILE | awk '{ print $1}')
 fi
 
 GROWTH=$(($NEW-$OLD))
 
-if [ $CONCERN -eq 0 ]; then 
-
-	if [ $GROWTH -gt 0 ]; then
-		echo "File grew by $GROWTH bytes"
-		exit $OK
-	else
-		echo "File hasn't grown"
-		exit $CRITICAL
-	fi
-
+if [[ $CONCERN -eq 0 ]]; then 
+  if [[ $GROWTH -gt 0 ]]; then
+    echo "File grew by $GROWTH bytes"
+    exit $OK
+  else
+    echo "File hasn't grown"
+    exit $CRITICAL
+  fi
 fi
 
-if [ $CONCERN -eq 1 ]; then
+if [[ $CONCERN -eq 1 ]]; then
+  if [[ $TYPE == "bigger" ]]; then
+    if [ $GROWTH -ge $CRIT ]; then
+      echo "File grew by $GROWTH bytes in ${TIME} seconds"
+      exit $CRITICAL
+    elif [[ $GROWTH -ge $WARN ]]; then
+      echo "File grew by $GROWTH bytes in ${TIME} seconds"
+      exit $WARNING
+    else
+      echo "File grew by $GROWTH bytes in ${TIME} seconds"
+      exit $OK
+    fi
+  fi
 
-	if [ $TYPE == "bigger" ]; then
-
-		if [ $GROWTH -ge $CRIT ]; then
-			echo "File grew by $GROWTH bytes in ${TIME} seconds"
-			exit $CRITICAL
-		elif [ $GROWTH -ge $WARN ]; then
-			echo "File grew by $GROWTH bytes in ${TIME} seconds"
-			exit $WARNING
-		else
-			echo "File grew by $GROWTH bytes in ${TIME} seconds"
-			exit $OK
-		fi   
-	fi
-
-	if [ $TYPE == "smaller" ]; then
-
-		if [ $GROWTH -le $CRIT ]; then
-			echo "File grew by $GROWTH bytes in ${TIME} seconds"
-			exit $CRITICAL
-		elif [ $GROWTH -le $WARN ]; then
-			echo "File grew by $GROWTH bytes in ${TIME} seconds"
-			exit $WARNING
-		else
-			echo "File grew by $GROWTH bytes in ${TIME} seconds"
-			exit $OK
-		fi
-	fi
+  if [[ $TYPE == "smaller" ]]; then
+    if [[ $GROWTH -le $CRIT ]]; then
+      echo "File grew by $GROWTH bytes in ${TIME} seconds"
+      exit $CRITICAL
+    elif [[ $GROWTH -le $WARN ]]; then
+      echo "File grew by $GROWTH bytes in ${TIME} seconds"
+      exit $WARNING
+    else
+      echo "File grew by $GROWTH bytes in ${TIME} seconds"
+      exit $OK
+    fi
+  fi
 fi
