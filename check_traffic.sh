@@ -2,13 +2,6 @@
 
 # Author: Jon Schipp
 
-########
-# Examples:
-
-# 1.) Check syslog traffic rate
-# $ ./check_traffice.sh -i eth0 -f "port 514" -t 1s -w 500 -c 1000
-
-
 # Nagios Exit Codes
 OK=0
 WARNING=1
@@ -21,13 +14,12 @@ cat <<EOF
 
 Nagios plug-in that checks packet rate for traffic specified with a bpf
 
-      Options:
-
-      -i 		Network interface
-      -f <bpf>		Filter in libpcap syntax
-      -t <int>		Time interval in seconds (def: 1)
-      -w <int>		Warning threshold
-      -c <int>		Critical threshold
+  Options:
+  -i 		Network interface
+  -f <bpf>	Filter in libpcap syntax
+  -t <int>	Time interval in seconds (def: 1)
+  -w <int>	Warning threshold
+  -c <int>	Critical threshold
 
 EOF
 }
@@ -69,11 +61,11 @@ get_counts() {
 
 traffic_calculation() {
 if [ $1 -gt $CRIT ]; then
-	exit $CRITICAL
+  exit $CRITICAL
 elif [ $1 -gt $WARN ]; then
-	exit $WARNING
+  exit $WARNING
 else
-	exit $OK
+  exit $OK
 fi
 }
 
@@ -94,30 +86,30 @@ depend_check
 # option and argument handling
 while getopts "hi:c:f:t:w:" OPTION
 do
-     case $OPTION in
-         h)
-             usage
-             exit
-             ;;
-         i)
-	     INT=$OPTARG
-	     ;;
-	 f)
-	     FILTER="$OPTARG"
-	     ;;
-	 t)
-	     TIME=$OPTARG
-	     ;;
-	 c)
-	     CRIT=$OPTARG
-	     ;;
-	 w)
-	     WARN=$OPTARG
-	     ;;
-	 *)
-	     exit $UNKNOWN
-             ;;
-     esac
+  case $OPTION in
+     h)
+       usage
+       exit
+       ;;
+     i)
+       INT=$OPTARG
+       ;;
+     f)
+       FILTER="$OPTARG"
+       ;;
+     t)
+       TIME=$OPTARG
+       ;;
+     c)
+       CRIT=$OPTARG
+       ;;
+     w)
+       WARN=$OPTARG
+       ;;
+     *)
+       exit $UNKNOWN
+       ;;
+  esac
 done
 
 [ -d /sys/class/net/$INT ] || { "UNKNOWN: $INT does not exist" && exit $UNKNOWN; }

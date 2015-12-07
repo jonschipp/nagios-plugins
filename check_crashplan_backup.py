@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Author: Jon Schipp <jonschipp@gmail.com, jschipp@illinois.edu>
 import sys
 import datetime
 import requests
@@ -12,7 +13,6 @@ nagios_warning  = 1
 nagios_critical = 2
 nagios_unknown  = 3
 
-import argparse
 parser = argparse.ArgumentParser(description='Last Crashplan backup check')
 parser.add_argument("-s", "--skip", type=str, help="Hosts to skip from backup check")
 parser.add_argument("-d", "--device", type=str, help="Specify deviceName to check (def: all)")
@@ -38,12 +38,12 @@ else:
 
 # Open file
 try:
-  f = open(filename, "r")
-  global data
-  creds = imp.load_source('data', '', f)
-  f.close()
+  with open(filename, 'r') as f:
+    creds = json.load(f)
+  user = creds["user"]
+  password = creds["password"]
 except IOError:
-  print "Could not open file! Does it exist?"
+  print "Could not open file! Does it exist? Is it valid JSON?"
   exit(nagios_unknown)
 
 def backup_check(device, orig_time):
@@ -51,7 +51,7 @@ def backup_check(device, orig_time):
   if time < critical_days:
     print "CRITICAL: %s: LastCompleteBackup: %s" % (device, orig_time)
     status = nagios_critical
-    
+
 def format_time(entry, orig_time):
   global time
   time = datetime.datetime.strptime(orig_time, "%b %d, %Y %I:%M:%S %p")
@@ -76,7 +76,7 @@ def check_host_backup():
       backup_check(device, orig_time)
 
 # Make API request
-r = requests.get(url, auth=(creds.user, creds.password))
+r = requests.get(url, auth=(user, password))
 r.raise_for_status()
 
 data  = r.json()
@@ -87,8 +87,8 @@ if host == 0:
 else:
  check_host_backup()
 
-if status == nagios_critical: 
+if status == nagios_critical:
   exit(nagios_critical)
 else:
-  print "OK: All backups have been completed recently" 
+  print "OK: All backups have been completed recently"
   exit(nagios_ok)

@@ -50,13 +50,13 @@ do
          h)
 	     usage
              ;;
-	 t) 
+	 t)
 	     MONITOR=1
 	     ;;
-	 c) 
+	 c)
 	     CRIT="$OPTARG"
 	     ;;
-	 w) 
+	 w)
 	     WARN="$OPTARG"
 	     ;;
          \?)
@@ -68,11 +68,11 @@ done
 if [ $MONITOR -eq 1 ]; then
 	$COMMAND | sed 's/ F//' | awk -v crit=$CRIT -F : \
 	'$2 > crit { high=1; print $0 }
-	END { 
-	if (high == 1) { 
-		exit 2 
-	} else { 
-		exit 0 
+	END {
+	if (high == 1) {
+		exit 2
+	} else {
+		exit 0
 		}
 	}'
 

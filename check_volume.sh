@@ -22,7 +22,7 @@ Usage: $0 -v /mnt -c 95 -w 90
 EOF
 }
 
-if [ $# -lt 6 ]; 
+if [ $# -lt 6 ];
 then
 	usage
 	exit 1
@@ -50,7 +50,7 @@ do
          v)
              VOL="$OPTARG"
              ;;
-	 w) 
+	 w)
 	     WARN="$OPTARG"
 	     ;;
          \?)
@@ -83,4 +83,4 @@ elif [ $STATUS -gt $WARN ]; then
 else
         echo "$VOL is at ${STATUS}% capacity, $USED of $SIZE"
         exit $OK
-fi 
+fi

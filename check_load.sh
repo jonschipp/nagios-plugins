@@ -69,7 +69,7 @@ elif [[ "$OS" == freebsd ]]; then
 	UPTIME=$(uptime | awk -F : '{ print $4 }' | sed 's/,//g')
 elif [[ "$OS" == aix ]]; then
 	UPTIME=$(uptime | awk -F : '{ print $4 }' | sed 's/,//g')
-else 
+else
 	echo "OS not supported"
 	exit $UNKNOWN
 fi
@@ -89,7 +89,7 @@ UNAME=$(uname)
  else
         echo "Unsupported OS type!"
         exit 1
- fi  
+ fi
 
 }
 
@@ -171,7 +171,7 @@ if [ $THRESHOLD -eq 1 ]; then
 			WARN_STATUS=$((WARN_STATUS+1))
 		else
 			OK_STATUS=$((OK_STATUS+1))
-		fi	
+		fi
 	done
 fi
 
@@ -181,7 +181,7 @@ if [ $CRIT_STATUS -gt 0 ]; then
 elif [ $WARN_STATUS -gt 0 ]; then
 	echo "Load average warning: $UPTIME"
 	exit $WARNING
-else 
+else
 	echo "Load average: $UPTIME"
 	exit $OK
 fi

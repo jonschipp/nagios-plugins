@@ -34,9 +34,10 @@ BROCTL=/usr/local/bro/bin/broctl
 # Set this to the proper location if your installation differs
 MYRI_COUNTERS=/opt/snf/bin/myri_counters
 
-# Default location of capture_loss.log
+# Default location of logs
 # Set this to the proper location if your installation differs
 CAPTURE_LOG=/usr/local/bro/logs/current/capture_loss.log
+STATS_LOG=/usr/local/bro/logs/current/stats.log
 
 usage()
 {
@@ -45,25 +46,26 @@ cat <<EOF
 Check status of Bro and Bro workers.
 This script should be run on the Bro manager.
 
-Options:
-  -c <int>                Critical threshold as percent of packet loss
-  -f <path>               Set optional absolute path for broctl, myri_counters, or capture_loss.log (Use as first option)
-                          (def: $BROCTL,
-                          $MYRI_COUNTERS,
-                          $CAPTURE_LOG)
-  -i <node/worker>        Identifier for Bro instance(s). IP, FQDN, or name depending on the check. (sep:, )
-  -p <name>               Print the value of data from Bro e.g. Notice::suppressing or capture_filter
-  -T <type>               Check type, "status/loss/capture_loss/myricom/print"
-                          status - Check status of all Bro workers
-                          loss   - Average packet loss by name for a single-
-                            (\`\`-i nids01''), set (\`\`-i "nids01,nids02"), or all workers (\`\`-i all'').
-                          capture_loss - Checks for packet loss in capture_loss.log
-                          myricom - Average Myricom Sniffer driver packet loss by IP or FQDN for a single-
-                            (\`\`-i 192.168.1.1'') or set (\`\`-i "192.168.1.1,192.168.1.2") of Bro nodes
-                            Connects to nodes via SSH (pub-key auth). If username is not root use ``-u''.
-                          print   - Print Bro values
-  -u <user>               Username for the myricom check (def: root)
-  -w <int>                Warning threshold as percent of packet loss
+  Options:
+    -c <int>          Critical threshold as percent of packet loss
+    -f <path>         Set optional absolute path for broctl, myri_counters, or capture_loss.log
+                      Use \`\`-f'' as first option on command-line.
+                      (def: $BROCTL,
+                      $MYRI_COUNTERS,
+                      $CAPTURE_LOG)
+    -i <node/worker>  Identifier for Bro instance(s). IP, FQDN, or name depending on the check. (sep:, )
+    -p <name>         Print the value of data from Bro e.g. Notice::suppressing or capture_filter
+    -T <type>         Check type, "status/loss/capture_loss/myricom/print"
+                      status - Check status of all Bro workers
+                      loss   - Average packet loss by name for a single
+                       > (\`\`-i nids01''), set (\`\`-i "nids01,nids02"), or all workers (\`\`-i all'').
+                      capture_loss - Checks for packet loss in capture_loss.log
+                      myricom - Average Myricom Sniffer driver packet loss by IP or FQDN for a single-
+                       > (\`\`-i 192.168.1.1'') or set (\`\`-i "192.168.1.1,192.168.1.2") of Bro nodes
+                       > Connects to nodes via SSH (pub-key auth). If username is not root use ``-u''.
+                      print   - Print Bro values
+    -u <user>         Username for the myricom check (def: root)
+    -w <int>          Warning threshold as percent of packet loss
 
 Usage: $0 -f /usr/local/bro-dev/bin/brotcl -T status
 $0 -f /usr/local/bro-2.2/logs/current/capture_loss.log -T capture_loss -c 20
@@ -104,9 +106,7 @@ argcheck 1
 while getopts "hfc:i:lm:p:T:u:w:" OPTION
 do
   case $OPTION in
-    h)
-      usage
-      ;;
+    h) usage;;
     f)
       shift
       if [[ $1 == *broctl ]]; then
@@ -115,6 +115,9 @@ do
         MYRI_COUNTERS=$1
       elif [[ $1 == *capture_loss.log ]]; then
         CAPTURE_LOG=$1
+      # Custom thing written by jazoff - hopefully integrated into Bro upstream sometime
+      elif [[ $1 == *current/stats.log ]]; then
+        STATS_LOG=$1
       else
         echo "File name appears to be incorrect, maybe try setting the approprate variable in $0."
       fi
@@ -158,14 +161,14 @@ do
       fi
       ;;
     u)
-        USER="$OPTARG"
-        ;;
+      USER="$OPTARG"
+      ;;
     w)
-        WARN="$OPTARG"
-        ;;
+      WARN="$OPTARG"
+      ;;
     \?)
-        exit 1
-        ;;
+      exit 1
+      ;;
   esac
 done
 
@@ -184,9 +187,8 @@ fi
 
 if [ $LOSS_CHECK -eq 1 ]; then
 
-# Total average packet loss as a percent for specified workers
-FLOAT_LOSS=$($BROCTL netstats | grep "$WORKERS" | sed 's/[a-z]*=//g' | awk '{ drop += $4 ; link += $5 } END { printf("%f\n", ((drop/NR) / (link/NR))* 100) }')
-LOSS=$(/usr/bin/printf "%d\n" $FLOAT_LOSS 2>/dev/null)
+  FLOAT_LOSS=$($BROCTL netstats | grep "$WORKERS" | sed 's/[a-z]*=//g' | awk '{ drop += $4 ; link += $5 } END { printf("%f\n", ((drop/NR) / (link/NR))* 100) }')
+  LOSS=$(/usr/bin/printf "%d\n" $FLOAT_LOSS 2>/dev/null)
 
   if [ $LOSS -gt $CRIT ] ;then
     echo "Average packet loss is: $FLOAT_LOSS"
@@ -206,29 +208,28 @@ if [ $STATUS_CHECK -eq 1 ]; then
 
 # Broctl stderr is whitespace separated and we need to match on entire line
 IFS=$'\n'
-
-  for line in $($BROCTL status 2>&1 | grep -v 'Name\|waiting\|Getting')
-  do
-    NAME=$(echo "$line" | awk '{ print $1 }')
-    case "$line" in
-    *stop*)
-      echo "$NAME has stopped"
-      STOPPED=$((STOPPED+1))
-      ;;
-    *fail*)
-      echo "$NAME has crashed"
-      CRASHED=$((CRASHED+1))
-      ;;
-    *run*)
-      echo "$NAME is running"
-      RUNNING=$((RUNNING+1))
-      ;;
-    *)
-      echo "Unknown status of worker: $NAME"
-      UNKNOWN_WORKER=$((UNKNOWN_WORKER+1))
-      ;;
-    esac
-  done
+for line in $($BROCTL status 2>&1 | grep -v 'Name\|waiting')
+do
+  NAME=$(echo "$line" | awk '{ print $1 }')
+  case "$line" in
+  *stop*)
+    echo "$NAME has stopped"
+    STOPPED=$((STOPPED+1))
+    ;;
+  *fail*)
+    echo "$NAME has crashed"
+    CRASHED=$((CRASHED+1))
+    ;;
+  *run*)
+    echo "$NAME is running"
+    RUNNING=$((RUNNING+1))
+    ;;
+  *)
+    echo "Unknown status of worker: $NAME"
+    UNKNOWN_WORKER=$((UNKNOWN_WORKER+1))
+    ;;
+  esac
+done
 
   if [ $STOPPED -gt 0 ] || [ $CRASHED -gt 0 ] || [ $UNKNOWN_WORKER -gt 0 ]; then
     echo "-> $STOPPED stopped workers, $CRASHED crashed workers, $RUNNING running workers, and $UNKNOWN_WORKER workers with an unknown status"
@@ -250,24 +251,24 @@ if [ $CAPTURE_LOSS_CHECK -eq 1 ]; then
   RECENT=$(echo $((TIME-INTERVAL)))
 
   awk -v recent=$RECENT -v crit=$CRIT -v loss=0 -v threshold=0 '! /^#/ && $1 > recent && $4 > 0 \
-    {
-      loss++; decimal=sprintf("%d", $6);
-      if ( strtonum(decimal) > crit ) {
-        threshold++
-        print "Peer: "$3,"\t","Loss:", $6;
-      }
-    }
+     {
+            loss++; decimal=sprintf("%d", $6);
+            if ( strtonum(decimal) > crit ) {
+  		threshold++
+                    print "Peer: "$3,"\t","Loss:", $6;
+  	}
+     }
 
     END {
-      if ( loss >= 1 ) {
-        print "\n--------------------\n"loss,"instances of loss with",threshold,"exceeding the threshold ("crit"%).";
-        if ( threshold > 0 ) {
-          exit 2
-        }
-        exit 0
-      }
+  	 if ( loss >= 1 ) {
+                    print "\n--------------------\n"loss,"instances of loss with",threshold,"exceeding the threshold ("crit"%).";
+                    if ( threshold > 0 ) {
+                            exit 2
+                    }
+                    exit 0
+            }
     else
-      print "\nNo loss detected"; }' $CAPTURE_LOG
+             print "\nNo loss detected"; }' $CAPTURE_LOG
 
   if [ $? -eq 2 ]; then
     exit $CRITICAL
@@ -282,7 +283,6 @@ if [ $PRINT_CHECK -eq 1 ]; then
 fi
 
 if [ $MYRI_CHECK -eq 1 ]; then
-
 LOSS=0
 RECV=0
 COUNT=0

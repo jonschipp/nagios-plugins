@@ -79,7 +79,7 @@ PROG=wc
 OS=$(uname)
 ARGC=$#
 
-argcheck 4 
+argcheck 4
 
 while getopts "hc:f:i:M:T:w:" OPTION
 do
@@ -90,7 +90,7 @@ do
     CRIT="$OPTARG";;
   f)
     FILE="$OPTARG";;
-  i) 
+  i)
     TIME="$OPTARG";;
   M)
     PROG="$OPTARG"
@@ -113,7 +113,7 @@ do
     	echo "Unknown type!"
     	exit 1
     fi;;
-  w) 
+  w)
       WARN="$OPTARG";;
   \?)
       exit 1;;
@@ -142,7 +142,7 @@ fi
 
 GROWTH=$(($NEW-$OLD))
 
-if [[ $CONCERN -eq 0 ]]; then 
+if [[ $CONCERN -eq 0 ]]; then
   if [[ $GROWTH -gt 0 ]]; then
     echo "File grew by $GROWTH bytes"
     exit $OK
