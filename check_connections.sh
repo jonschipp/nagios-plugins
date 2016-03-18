@@ -47,7 +47,7 @@ WARN=0
 COUNT=0
 ARGC=$#
 CHECK=0
-EXCACT=0
+EXACT=0
 
 argcheck 1
 
