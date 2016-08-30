@@ -252,6 +252,10 @@ case $STATUS_MSG in
         echo "Error in command: $STATUS_MSG"
         exit $CRITICAL
         ;;
+*[fF]ailed*)
+        echo "$STATUS_MSG"
+        exit $CRITICAL
+        ;;
 *[eE]nable*)
         echo "$STATUS_MSG"
         exit $OK
