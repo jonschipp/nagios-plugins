@@ -203,7 +203,18 @@ do
 done
 
 os_check
+
+if [ $MANUAL -eq 1 ]; then
+SERVICETOOL=$MANUALSERVICETOOL
+else
 determine_service_tool
+fi
+
+# -l conflicts with -t                                                                                                                                                   
+if [ $MANUAL -eq 1 ] && [ $LIST -eq 1 ]; then
+    echo "Options conflict: \`\`-t'' and \`\`-l''"
+    exit 2
+fi
 
 if [ $LIST -eq 1 ]; then
         if [[ $LISTTOOL != null ]]; then
@@ -213,10 +224,6 @@ if [ $LIST -eq 1 ]; then
                 echo "OS not specified! Use \`\`-o''"
                 exit 2
         fi
-fi
-
-if [ $MANUAL -eq 1 ]; then
-SERVICETOOL=$MANUALSERVICETOOL
 fi
 
 # Check the status of a service
