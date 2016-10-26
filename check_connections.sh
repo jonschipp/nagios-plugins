@@ -21,6 +21,7 @@ Uses iproute2's ss tool to retrieve connections.
     -p <type> Set protocol or family type (udp/tcp/inet/inet6)
     -c        Critical threshold as an integer
     -w        Warning threshold as an integer
+    -e        Exact count mode (raise CRITICAL if connection != critical, warn is ignored)
 
 Usage: $0 -s established '( sport = :443 )' -w 800 -c 1000
 EOF
@@ -46,10 +47,11 @@ WARN=0
 COUNT=0
 ARGC=$#
 CHECK=0
+EXACT=0
 
 argcheck 1
 
-while getopts "hc:s:f:p:w:" OPTION
+while getopts "hc:s:f:p:w:e" OPTION
 do
   case $OPTION in
     h)
@@ -86,6 +88,9 @@ do
       WARN="$OPTARG"
       CHECK=1
       ;;
+	e)
+	  EXACT=1
+	  ;;
     \?)
       exit 1
       ;;
@@ -94,7 +99,16 @@ done
 
 COUNT=$(ss -n state $STATE $PROTOCOL $FILTER | grep -v 'State\|-Q' | wc -l)
 
-if [ $COUNT -gt $CRIT ]; then
+if [ $EXACT -eq 1 ]; then
+
+  echo "$COUNT sockets in $STATE state"
+  if [ $COUNT -ne $CRIT ]; then
+    exit $CRITICAL
+  else
+    exit $OK
+  fi
+
+elif [ $COUNT -gt $CRIT ]; then
   echo "$COUNT sockets in $STATE state!"
   exit $CRITICAL
 elif [ $COUNT -gt $WARN ]; then
