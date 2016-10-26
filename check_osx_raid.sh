@@ -55,7 +55,7 @@ done
 if [ $RAID_CHECK -eq 1 ]; then
 
 STATUS_ROW=$(diskutil appleRAID list | awk '/^Status:/ { print $2 }')
-DISK=$(diskutil appleRAID list | awk '/disk.*Fail/ { print $2 }')
+DISK=$(diskutil appleRAID list | awk '/disk.*(Fail|ebuild)/ { print $2 }')
 STATUS=$(diskutil appleRAID list | grep ^[0-9])
 
 case $STATUS in
@@ -71,6 +71,10 @@ case $STATUS in
 *[dD]egraded*)
 	echo "$DISK Failure: $STATUS_ROW array!"
 	exit $CRITICAL
+	;;
+*[Rr]ebuilding*)
+	echo "$DISK Rebuilding: $STATUS_ROW array!"
+	exit $WARNING
 	;;
 *[oO]nline*)
 	echo "RAID array is online."
