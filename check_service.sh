@@ -50,13 +50,15 @@ fi
 
 os_check() {
 if [ "$OS" == null ]; then
-        if [[ `uname` == 'Linux' ]]; then
+	unamestr=`uname`
+        if [[ $unamestr == 'Linux' ]]; then
                 OS='linux'
-        #I dont know the propper OS String for osx etc... as example
-        #elif [[ "$unamestr" == 'FreeBSD' ]]; then
-        #       OS='freebsd'
+        elif [[ $unamestr == 'FreeBSD' ]]; then
+               OS='freebsd'
+        elif [[ $unamestr == 'Darwin' ]]; then
+               OS='osx'	       
         else
-                echo "OS not recognized, Use \`\`-o'' and specify the OS as an argument"
+                echo "OS not recognized, Use \`-o\` and specify the OS as an argument"
                 exit 3
         fi
 fi
