@@ -50,10 +50,21 @@ fi
 
 os_check() {
 if [ "$OS" == null ]; then
-echo "Use \`\`-o'' and specify the OS as an argument"
-exit 3
+	unamestr=$(uname)
+        if [[ $unamestr == 'Linux' ]]; then
+                OS='linux'
+        elif [[ $unamestr == 'FreeBSD' ]]; then
+               OS='freebsd'
+        elif [[ $unamestr == 'Darwin' ]]; then
+               OS='osx'	       
+        else
+                echo "OS not recognized, Use \`-o\` and specify the OS as an argument"
+                exit 3
+        fi
 fi
 }
+
+
 
 determine_service_tool() {
 if [[ $OS == linux ]]; then
