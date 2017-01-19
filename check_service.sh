@@ -50,7 +50,7 @@ fi
 
 os_check() {
 if [ "$OS" == null ]; then
-	unamestr=`uname`
+	unamestr=$(uname)
         if [[ $unamestr == 'Linux' ]]; then
                 OS='linux'
         elif [[ $unamestr == 'FreeBSD' ]]; then
