@@ -158,10 +158,6 @@ if [[ $OS == aix ]]; then
 fi
 }
 
-auto_os_detect() {
-        echo test
-}
-
 ARGC=$#
 LIST=0
 MANUAL=0
