@@ -42,8 +42,8 @@ fi
 
 # Define now to prevent expected number errors
 STATE=all
-CRIT=0
-WARN=0
+CRIT=100
+WARN=50
 COUNT=0
 ARGC=$#
 CHECK=0
@@ -109,12 +109,12 @@ if [ $EXACT -eq 1 ]; then
   fi
 
 elif [ $COUNT -gt $CRIT ]; then
-  echo "$COUNT sockets in $STATE state!"
+  echo "CRITICAL - $COUNT sockets in $STATE state! | connections=$COUNT;$WARN;$CRIT"
   exit $CRITICAL
 elif [ $COUNT -gt $WARN ]; then
-  echo "$COUNT sockets in $STATE state!"
+  echo "WARNING - $COUNT sockets in $STATE state! | connections=$COUNT;$WARN;$CRIT"
   exit $WARNING
 else
-  echo "$COUNT sockets in $STATE state."
+  echo "OK - $COUNT sockets in $STATE state. | connections=$COUNT;$WARN;$CRIT"
   exit $OK
 fi
