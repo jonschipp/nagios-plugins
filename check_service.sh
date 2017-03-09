@@ -17,10 +17,10 @@
 # $ ./check_service.sh -o linux -t "service rsyslog status"
 
 # Nagios Exit Codes
-OK=0
-WARNING=1
-CRITICAL=2
-UNKNOWN=3
+EXIT_OK=0
+EXIT_WARNING=1
+EXIT_CRITICAL=2
+EXIT_UNKNOWN=3
 
 usage()
 {
@@ -240,31 +240,31 @@ case $STATUS_MSG in
 
 *stop*)
         echo "$STATUS_MSG"
-        exit $CRITICAL
+        exit $EXIT_CRITICAL
         ;;
 *STOPPED*)
         echo "$STATUS_MSG"
-        exit $CRITICAL
+        exit $EXIT_CRITICAL
         ;;
 *not*running*)
         echo "$STATUS_MSG"
-        exit $CRITICAL
+        exit $EXIT_CRITICAL
         ;;
 *running*)
         echo "$STATUS_MSG"
-        exit $OK
+        exit $EXIT_OK
         ;;
 *RUNNING*)
         echo "$STATUS_MSG"
-        exit $OK
+        exit $EXIT_OK
         ;;
 *SUCCESS*)
         echo "$STATUS_MSG"
-        exit $OK
+        exit $EXIT_OK
         ;;
 *[eE]rr*)
         echo "Error in command: $STATUS_MSG"
-        exit $CRITICAL
+        exit $EXIT_CRITICAL
         ;;
 *[fF]ailed*)
         echo "$STATUS_MSG"
@@ -272,44 +272,44 @@ case $STATUS_MSG in
         ;;
 *[eE]nable*)
         echo "$STATUS_MSG"
-        exit $OK
+        exit $EXIT_OK
         ;;
 *[dD]isable*)
         echo "$STATUS_MSG"
-        exit $CRITICAL
+        exit $EXIT_CRITICAL
         ;;
 *[cC]annot*)
         echo "$STATUS_MSG"
-        exit $CRITICAL
+        exit $EXIT_CRITICAL
         ;;
 *inactive*)
         echo "$STATUS_MSG"
-        exit $CRITICAL
+        exit $EXIT_CRITICAL
         ;;
 *dead*)
         echo "$STATUS_MSG"
-        exit $CRITICAL
+        exit $EXIT_CRITICAL
         ;;
 *[aA]ctive*)
         echo "$STATUS_MSG"
-        exit $OK
+        exit $EXIT_OK
         ;;
 *Subsystem*not*on*file)
         echo "$STATUS_MSG"
-        exit $CRITICAL
+        exit $EXIT_CRITICAL
         ;;
 [1-9][1-9]*)
         echo "$SERVICE running: $STATUS_MSG"
-        exit $OK
+        exit $EXIT_OK
         ;;
 "")
 	echo "$SERVICE is not running: no output from service command"
-	exit $CRITICAL
+	exit $EXIT_CRITICAL
 	;;
 *)
         echo "Unknown status: $STATUS_MSG"
         echo "Is there a typo in the command or service configuration?: $STATUS_MSG"
-        exit $UNKNOWN
+        exit $EXIT_UNKNOWN
         ;;
 esac
 
