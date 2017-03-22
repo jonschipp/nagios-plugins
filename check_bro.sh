@@ -234,10 +234,10 @@ do
 done
 
   if [ $STOPPED -gt 0 ] || [ $CRASHED -gt 0 ] || [ $UNKNOWN_WORKER -gt 0 ]; then
-    echo "$CHECK_NAME CRITICAL - $STOPPED stopped workers, $CRASHED crashed workers, $RUNNING running workers, and $UNKNOWN_WORKER workers with an unknown status |$MESSAGE"
+    echo "$CHECK_NAME CRITICAL - $STOPPED stopped workers, $CRASHED crashed workers, $RUNNING running workers, and $UNKNOWN_WORKER workers with an unknown status:$MESSAGE"
     exit $CRITICAL
   else
-    echo "$CHECK_NAME OK - All $RUNNING instances are running |$MESSAGE"
+    echo "$CHECK_NAME OK - All $RUNNING instances are running:$MESSAGE"
     exit $OK
   fi
 fi
