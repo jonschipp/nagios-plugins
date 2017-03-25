@@ -208,34 +208,36 @@ if [ $STATUS_CHECK -eq 1 ]; then
 
 # Broctl stderr is whitespace separated and we need to match on entire line
 IFS=$'\n'
-for line in $($BROCTL status 2>&1 | grep -v 'Name\|waiting')
+MESSAGE=""
+CHECK_NAME="BROCTL STATUS"
+for line in $($BROCTL status 2>&1 | grep -v 'Name\|waiting\|Warning')
 do
   NAME=$(echo "$line" | awk '{ print $1 }')
   case "$line" in
   *stop*)
-    echo "$NAME has stopped"
+    MESSAGE="$MESSAGE $NAME has stopped,"
     STOPPED=$((STOPPED+1))
     ;;
   *fail*)
-    echo "$NAME has crashed"
+    MESSAGE="$MESSAGE $NAME has crashed,"
     CRASHED=$((CRASHED+1))
     ;;
   *run*)
-    echo "$NAME is running"
+    MESSAGE="$MESSAGE $NAME is running,"
     RUNNING=$((RUNNING+1))
     ;;
   *)
-    echo "Unknown status of worker: $NAME"
+    MESSAGE="$MESSAGE Unknown status of worker: $NAME,"
     UNKNOWN_WORKER=$((UNKNOWN_WORKER+1))
     ;;
   esac
 done
 
   if [ $STOPPED -gt 0 ] || [ $CRASHED -gt 0 ] || [ $UNKNOWN_WORKER -gt 0 ]; then
-    echo "-> $STOPPED stopped workers, $CRASHED crashed workers, $RUNNING running workers, and $UNKNOWN_WORKER workers with an unknown status"
+    echo "$CHECK_NAME CRITICAL - $STOPPED stopped workers, $CRASHED crashed workers, $RUNNING running workers, and $UNKNOWN_WORKER workers with an unknown status:$MESSAGE"
     exit $CRITICAL
   else
-    echo "All $RUNNING instances are running!"
+    echo "$CHECK_NAME OK - All $RUNNING instances are running:$MESSAGE"
     exit $OK
   fi
 fi
