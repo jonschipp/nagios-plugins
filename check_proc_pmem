@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Nagios plugin to check process group memory consumption
+# Origin:
+# @see http://unix.stackexchange.com/questions/233944/how-to-view-summaric-memory-usage-of-groups-of-commands-instead-of-processes
+# @see https://github.com/jonschipp/nagios-plugins/blob/master/check_memory.sh
+
+# Nagios Exit Codes
+OK=0
+WARNING=1
+CRITICAL=2
+UNKNOWN=3
+
+# set default values for the thresholds
+WARN=80
+CRIT=90
+
+usage()
+{
+cat <<EOF
+
+Check memory consumption by process group.
+
+     Options:
+        -c         Critical threshold as percentage (0-100) (def: 90)
+        -w         Warning threshold as percentage (0-100) (def: 80)
+
+Usage: $0 -p procname -w 90 -c 95
+Example: $0 -p httpd -w 30 -c 40
+EOF
+}
+
+while getopts "p:c:w:h" ARG;
+do
+    case $ARG in
+        p) PROCNAME=$OPTARG
+           ;;
+        w) WARN=$OPTARG
+           ;;
+        c) CRIT=$OPTARG
+           ;;
+        h) usage
+           exit
+           ;;
+    esac
+done
+
+if [ -z $PROCNAME ]; then
+    usage
+    exit
+fi
+
+PERCENTAGE=`ps -C $PROCNAME --no-headers -o pmem | xargs | sed -e 's/ /+/g' | bc`
+INTPERCENTAGE=${PERCENTAGE/.*/}
+RESULT="$PROCNAME uses ${PERCENTAGE}% of memory"
+
+if [ $INTPERCENTAGE -ge $CRIT ]; then
+        echo "CRITICAL: $RESULT"
+        exit $CRITICAL;
+elif [ $INTPERCENTAGE -ge $WARN ]; then
+        echo "WARNING: $RESULT"
+        exit $WARNING;
+else
+        echo "OK: $RESULT"
+        exit $OK;
+fi
