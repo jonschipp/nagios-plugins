@@ -3,6 +3,7 @@
 # Author: Jon Schipp
 # 2015-03-09 [Pascal Hegy] - Add sudo for linux
 # 2015-03-09 [Pascal Hegy] - Change USER variable to USERNAME to avoid the use and confusion with the USER env variable
+# 2017-08-30 [Roberto Leibman] - Reordered checks to make sure dead and inactive get checked first
 
 ########
 # Examples:
@@ -250,6 +251,14 @@ case $STATUS_MSG in
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
+*inactive*)
+        echo "$STATUS_MSG"
+        exit $CRITICAL
+        ;;
+*dead*)
+        echo "$STATUS_MSG"
+        exit $CRITICAL
+        ;;
 *running*)
         echo "$STATUS_MSG"
         exit $OK
@@ -279,14 +288,6 @@ case $STATUS_MSG in
         exit $CRITICAL
         ;;
 *[cC]annot*)
-        echo "$STATUS_MSG"
-        exit $CRITICAL
-        ;;
-*inactive*)
-        echo "$STATUS_MSG"
-        exit $CRITICAL
-        ;;
-*dead*)
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
