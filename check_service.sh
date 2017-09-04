@@ -67,6 +67,7 @@ fi
 
 
 determine_service_tool() {
+TRUST_EXIT_CODE=0
 if [[ $OS == linux ]]; then
         if command -v systemctl >/dev/null 2>&1; then
                 SERVICETOOL="systemctl status $SERVICE"
@@ -75,6 +76,7 @@ if [[ $OS == linux ]]; then
                     SERVICETOOL="sudo -u $USERNAME systemctl status $SERVICE"
                     LISTTOOL="sudo -u $USERNAME systemctl"
                 fi
+		TRUST_EXIT_CODE=1
         elif command -v initctl >/dev/null 2>&1; then
                 SERVICETOOL="status $SERVICE"
                 LISTTOOL="initctl list"
@@ -235,6 +237,16 @@ fi
 
 # Check the status of a service
 STATUS_MSG=$(eval "$SERVICETOOL" 2>&1)
+EXIT_CODE=$?
+
+## Exit code from the service tool - if it's non-zero, we should
+## probably return CRITICAL.  (though, in some cases UNKNOWN would
+## probably be more appropriate)
+[ $EXIT_CODE -ne 0 ] && echo "$STATUS_MSG" && exit $CRITICAL
+
+## For systemd and most systems, $EXIT_CODE can be trusted - if it's 0, the service is running.
+## Ref https://github.com/jonschipp/nagios-plugins/issues/15
+[ $TRUST_EXIT_CODE -eq 1 ] && [ $EXIT_CODE -eq 0 ] && echo "$STATUS_MSG" && exit $OK 
 
 case $STATUS_MSG in
 
