@@ -311,7 +311,7 @@ case $STATUS_MSG in
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
-[1-9][1-9]*)
+[1-9][0-9]*)
         echo "$SERVICE running: $STATUS_MSG"
         exit $OK
         ;;
