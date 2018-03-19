@@ -78,19 +78,19 @@ if [[ $OS == linux ]]; then
                     LISTTOOL="sudo -u $USERNAME systemctl"
                 fi
 		TRUST_EXIT_CODE=1
-        elif command -v initctl >/dev/null 2>&1; then
-                SERVICETOOL="status $SERVICE"
-                LISTTOOL="initctl list"
-                if [ $USERNAME ]; then
-                    SERVICETOOL="sudo -u $USERNAME status $SERVICE"
-                    LISTTOOL="sudo -u $USERNAME initctl list"
-                fi
         elif command -v service >/dev/null 2>&1; then
                 SERVICETOOL="service $SERVICE status"
                 LISTTOOL="service --status-all"
                 if [ $USERNAME ]; then
                     SERVICETOOL="sudo -u $USERNAME service $SERVICE status"
                     LISTTOOL="sudo -u $USERNAME service --status-all"
+                fi
+        elif command -v initctl >/dev/null 2>&1; then
+                SERVICETOOL="status $SERVICE"
+                LISTTOOL="initctl list"
+                if [ $USERNAME ]; then
+                    SERVICETOOL="sudo -u $USERNAME status $SERVICE"
+                    LISTTOOL="sudo -u $USERNAME initctl list"
                 fi
         elif command -v chkconfig >/dev/null 2>&1; then
                 SERVICETOOL=chkconfig
