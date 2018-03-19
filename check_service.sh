@@ -263,6 +263,14 @@ case $STATUS_MSG in
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
+*NOT*running*)
+        echo "$STATUS_MSG"
+        exit $CRITICAL
+        ;;
+*NOT*RUNNING*)
+        echo "$STATUS_MSG"
+        exit $CRITICAL
+        ;;
 *inactive*)
         echo "$STATUS_MSG"
         exit $CRITICAL
