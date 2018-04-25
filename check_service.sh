@@ -4,6 +4,7 @@
 # 2015-03-09 [Pascal Hegy] - Add sudo for linux
 # 2015-03-09 [Pascal Hegy] - Change USER variable to USERNAME to avoid the use and confusion with the USER env variable
 # 2017-08-30 [Roberto Leibman] - Reordered checks to make sure dead and inactive get checked first
+# 2018-04-25 [Robin Gierse] - Update check via systemctl for Linux with grep to produce better output for systemctl
 
 ########
 # Examples:
@@ -71,7 +72,7 @@ determine_service_tool() {
 TRUST_EXIT_CODE=0
 if [[ $OS == linux ]]; then
         if command -v systemctl >/dev/null 2>&1; then
-                SERVICETOOL="systemctl status $SERVICE"
+                SERVICETOOL="systemctl status $SERVICE | grep -i Active"
                 LISTTOOL="systemctl"
                 if [ $USERNAME ]; then
                     SERVICETOOL="sudo -u $USERNAME systemctl status $SERVICE"
