@@ -146,7 +146,7 @@ if [ $THRESHOLD -eq 0 ]; then
 
 	for load in $UPTIME
 	do
-		LOAD=$(/usr/bin/printf "%d\n" $load 2>/dev/null)
+        LOAD=$(/usr/bin/printf "%f\n" $load 2>/dev/null)
 
 		if [ $LOAD -gt $CORES ]; then
 			CRIT_STATUS=$((CRIT_STATUS+1))
@@ -163,11 +163,11 @@ if [ $THRESHOLD -eq 1 ]; then
 
 	for load in $UPTIME
 	do
-		LOAD=$(/usr/bin/printf "%d\n" $load 2>/dev/null)
+        LOAD=$(/usr/bin/printf "%f\n" $load 2>/dev/null)
 
-		if [ $LOAD -gt $CRIT ]; then
+        if [ $(echo "$LOAD > $CRIT" | bc) -eq 1 ]; then
 			CRIT_STATUS=$((CRIT_STATUS+1))
-		elif [ $LOAD -gt $WARN ]; then
+        elif [ $(echo "$LOAD > $WARN" | bc) -eq 1 ]; then
 			WARN_STATUS=$((WARN_STATUS+1))
 		else
 			OK_STATUS=$((OK_STATUS+1))
