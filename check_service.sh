@@ -24,6 +24,11 @@ WARNING=1
 CRITICAL=2
 UNKNOWN=3
 
+# Weather or not we can trust the exit code from the service management tool.
+# Defaults to 0, put to 1 for systemd.  Otherwise we must rely on parsing the
+# output from the service management tool.
+TRUST_EXIT_CODE=0
+
 usage()
 {
 cat <<EOF
@@ -69,7 +74,6 @@ fi
 
 
 determine_service_tool() {
-TRUST_EXIT_CODE=0
 if [[ $OS == linux ]]; then
         if command -v systemctl >/dev/null 2>&1; then
                 SERVICETOOL="systemctl status $SERVICE | grep -i Active"
