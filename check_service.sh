@@ -5,6 +5,7 @@
 # 2015-03-09 [Pascal Hegy] - Change USER variable to USERNAME to avoid the use and confusion with the USER env variable
 # 2017-08-30 [Roberto Leibman] - Reordered checks to make sure dead and inactive get checked first
 # 2018-04-25 [Robin Gierse] - Update check via systemctl for Linux with grep to produce better output for systemctl
+# 2019-03-15 [nem / liberodark] - Add support for check all failed services in linux
 
 ########
 # Examples:
