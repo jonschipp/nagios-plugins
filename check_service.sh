@@ -338,5 +338,13 @@ case $STATUS_MSG in
         echo "Is there a typo in the command or service configuration?: $STATUS_MSG"
         exit $UNKNOWN
         ;;
+*0\ loaded*)
+        echo "$STATUS_MSG"
+        exit $OK
+        ;;
+*[^0]\ loaded*)
+        echo "$STATUS_MSG"
+        exit $WARNING
+        ;;
 esac
 
