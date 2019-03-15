@@ -277,10 +277,10 @@ case $STATUS_MSG in
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
-*inactive*)
-        echo "$STATUS_MSG"
-        exit $CRITICAL
-        ;;
+#*inactive*)
+#        echo "$STATUS_MSG"
+#        exit $CRITICAL
+#        ;;
 *dead*)
         echo "$STATUS_MSG"
         exit $CRITICAL
@@ -341,10 +341,6 @@ case $STATUS_MSG in
 *0\ loaded*)
         echo "$STATUS_MSG"
         exit $OK
-        ;;
-*[^0]\ loaded*)
-        echo "$STATUS_MSG"
-        exit $WARNING
         ;;
 esac
 
