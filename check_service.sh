@@ -18,6 +18,8 @@
 
 # 3.) Manually select service management tool and service
 # $ ./check_service.sh -o linux -t "service rsyslog status"
+# Exemple for check all failed services
+# $ ./check_service.sh -o linux -t "systemctl list-units --state=failed"
 
 # Nagios Exit Codes
 OK=0
