@@ -5,6 +5,7 @@
 # 2015-03-09 [Pascal Hegy] - Change USER variable to USERNAME to avoid the use and confusion with the USER env variable
 # 2017-08-30 [Roberto Leibman] - Reordered checks to make sure dead and inactive get checked first
 # 2018-04-25 [Robin Gierse] - Update check via systemctl for Linux with grep to produce better output for systemctl
+# 2019-03-15 [nem / liberodark] - Add support for check all failed services in linux
 
 ########
 # Examples:
@@ -17,6 +18,8 @@
 
 # 3.) Manually select service management tool and service
 # $ ./check_service.sh -o linux -t "service rsyslog status"
+# Exemple for check all failed services
+# $ ./check_service.sh -o linux -t "systemctl list-units --state=failed"
 
 # Nagios Exit Codes
 OK=0
@@ -276,10 +279,10 @@ case $STATUS_MSG in
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
-*inactive*)
-        echo "$STATUS_MSG"
-        exit $CRITICAL
-        ;;
+#*inactive*)
+#        echo "$STATUS_MSG"
+#        exit $CRITICAL
+#        ;;
 *dead*)
         echo "$STATUS_MSG"
         exit $CRITICAL
@@ -336,6 +339,10 @@ case $STATUS_MSG in
         echo "Unknown status: $STATUS_MSG"
         echo "Is there a typo in the command or service configuration?: $STATUS_MSG"
         exit $UNKNOWN
+        ;;
+*0\ loaded*)
+        echo "$STATUS_MSG"
+        exit $OK
         ;;
 esac
 
