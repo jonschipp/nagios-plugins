@@ -175,7 +175,7 @@ if [ $CHECK_THRESHOLD -eq 1 ]; then
         ACTIVE=$($AGENT_CONTROL -l | grep Active | wc -l)
         INACTIVE=$($AGENT_CONTROL -l | grep Disconnected | wc -l)
         NEVER=$($AGENT_CONTROL -l | grep Never | wc -l)
-        TOTAL=$($AGENT_CONTROL -l | wc -l)
+        TOTAL=$((ACTIVE+INACTIVE+NEVER))
 
         if [ $INACTIVE -gt $CRIT ]; then
                 echo "$INACTIVE of $TOTAL agents inactive! Active: $ACTIVE"
