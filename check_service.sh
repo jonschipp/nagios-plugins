@@ -257,25 +257,23 @@ EXIT_CODE=$?
 ## Ref https://github.com/jonschipp/nagios-plugins/issues/15
 [ $TRUST_EXIT_CODE -eq 1 ] && [ $EXIT_CODE -eq 0 ] && echo "$STATUS_MSG" && exit $OK 
 
-case $STATUS_MSG in
+# Remove color codes
+STATUS_MSG=$(echo $STATUS_MSG | sed 's/\x1b\[[0-9;]*m//g' 2>&1)
+
+# Convert to lower case
+STATUS_MSG_IN_LOWER_CASE=$(echo $STATUS_MSG | sed -e 's/\(.*\)/\L\1/' 2>&1)
+
+case $STATUS_MSG_IN_LOWER_CASE in
 
 *stop*)
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
-*STOPPED*)
+*stopped*)
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
 *not*running*)
-        echo "$STATUS_MSG"
-        exit $CRITICAL
-        ;;
-*NOT*running*)
-        echo "$STATUS_MSG"
-        exit $CRITICAL
-        ;;
-*NOT*RUNNING*)
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
@@ -291,39 +289,35 @@ case $STATUS_MSG in
         echo "$STATUS_MSG"
         exit $OK
         ;;
-*RUNNING*)
+*success*)
         echo "$STATUS_MSG"
         exit $OK
         ;;
-*SUCCESS*)
-        echo "$STATUS_MSG"
-        exit $OK
-        ;;
-*[eE]rr*)
+*err*)
         echo "Error in command: $STATUS_MSG"
         exit $CRITICAL
         ;;
-*[fF]ailed*)
+*failed*)
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
-*[eE]nable*)
+*enable*)
         echo "$STATUS_MSG"
         exit $OK
         ;;
-*[dD]isable*)
+*disable*)
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
-*[cC]annot*)
+*cannot*)
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
-*[aA]ctive*)
+*active*)
         echo "$STATUS_MSG"
         exit $OK
         ;;
-*Subsystem*not*on*file)
+*subsystem*not*on*file)
         echo "$STATUS_MSG"
         exit $CRITICAL
         ;;
