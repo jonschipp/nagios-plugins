@@ -26,6 +26,7 @@ OK=0
 WARNING=1
 CRITICAL=2
 UNKNOWN=3
+GREP_AFTER=0
 
 # Weather or not we can trust the exit code from the service management tool.
 # Defaults to 0, put to 1 for systemd.  Otherwise we must rely on parsing the
@@ -74,12 +75,11 @@ if [ "$OS" == null ]; then
 fi
 }
 
-
-
 determine_service_tool() {
 if [[ $OS == linux ]]; then
         if command -v systemctl >/dev/null 2>&1; then
-                SERVICETOOL="systemctl status $SERVICE | grep -i Active"
+                SERVICETOOL="systemctl status $SERVICE"
+                GREP_AFTER=1
                 LISTTOOL="systemctl"
                 if [ $USERNAME ]; then
                     SERVICETOOL="sudo -u $USERNAME systemctl status $SERVICE"
@@ -223,9 +223,9 @@ done
 os_check
 
 if [ $MANUAL -eq 1 ]; then
-SERVICETOOL=$MANUALSERVICETOOL
+     SERVICETOOL=$MANUALSERVICETOOL
 else
-determine_service_tool
+     determine_service_tool
 fi
 
 # -l conflicts with -t                                                                                                                                                   
@@ -245,17 +245,23 @@ if [ $LIST -eq 1 ]; then
 fi
 
 # Check the status of a service
-STATUS_MSG=$(eval "$SERVICETOOL" 2>&1)
+STATUS_MSG=$($SERVICETOOL 2>&1)
+# FAKE test STATUS_MSG=$(./check_service_fake_output.sh 2>&1)
 EXIT_CODE=$?
+
+if [ $GREP_AFTER -eq 1 ] ; then
+     STATUS_MSG=$( grep Active: <<< "${STATUS_MSG}")
+fi
 
 ## Exit code from the service tool - if it's non-zero, we should
 ## probably return CRITICAL.  (though, in some cases UNKNOWN would
 ## probably be more appropriate)
-[ $EXIT_CODE -ne 0 ] && echo "$STATUS_MSG" && exit $CRITICAL
+# EBT OFF [ $EXIT_CODE -ne 0 ] && echo "$STATUS_MSG" && exit $CRITICAL
 
 ## For systemd and most systems, $EXIT_CODE can be trusted - if it's 0, the service is running.
 ## Ref https://github.com/jonschipp/nagios-plugins/issues/15
 [ $TRUST_EXIT_CODE -eq 1 ] && [ $EXIT_CODE -eq 0 ] && echo "$STATUS_MSG" && exit $OK 
+
 
 case $STATUS_MSG in
 
@@ -345,4 +351,5 @@ case $STATUS_MSG in
         exit $OK
         ;;
 esac
+
 
