@@ -6,6 +6,7 @@
 # 2017-08-30 [Roberto Leibman] - Reordered checks to make sure dead and inactive get checked first
 # 2018-04-25 [Robin Gierse] - Update check via systemctl for Linux with grep to produce better output for systemctl
 # 2019-03-15 [nem / liberodark] - Add support for check all failed services in linux
+# 2022-11-29 [kjetilho] - Add support for systemctl is-failed
 
 ########
 # Examples:
@@ -43,6 +44,7 @@ Check status of system services for Linux, FreeBSD, OSX, and AIX.
         -l              List services
         -o <os>         OS type, "linux/osx/freebsd/aix"
         -u <user>       User if you need to ``sudo -u'' for launchctl (def: nagios, linux and osx only)
+        -f <service>    Check that service has not failed (systemd specific)
         -t <tool>       Manually specify service management tool (def: autodetect) with status and service
                         e.g. ``-t "service nagios status"''
 
@@ -60,13 +62,13 @@ fi
 
 os_check() {
 if [ "$OS" == null ]; then
-	unamestr=$(uname)
+        unamestr=$(uname)
         if [[ $unamestr == 'Linux' ]]; then
                 OS='linux'
         elif [[ $unamestr == 'FreeBSD' ]]; then
-               OS='freebsd'
+                OS='freebsd'
         elif [[ $unamestr == 'Darwin' ]]; then
-               OS='osx'	       
+                OS='osx'
         else
                 echo "OS not recognized, Use \`-o\` and specify the OS as an argument"
                 exit 3
@@ -79,44 +81,33 @@ fi
 determine_service_tool() {
 if [[ $OS == linux ]]; then
         if command -v systemctl >/dev/null 2>&1; then
-                SERVICETOOL="systemctl status $SERVICE | grep -i Active"
+                TOOLFAMILY="systemctl"
+                SERVICETOOL="systemctl status $SERVICE"
                 LISTTOOL="systemctl"
-                if [ $USERNAME ]; then
-                    SERVICETOOL="sudo -u $USERNAME systemctl status $SERVICE"
-                    LISTTOOL="sudo -u $USERNAME systemctl"
-                fi
-		TRUST_EXIT_CODE=1
+                TRUST_EXIT_CODE=1
         elif command -v service >/dev/null 2>&1; then
+                TOOLFAMILY="service"
                 SERVICETOOL="service $SERVICE status"
                 LISTTOOL="service --status-all"
-                if [ $USERNAME ]; then
-                    SERVICETOOL="sudo -u $USERNAME service $SERVICE status"
-                    LISTTOOL="sudo -u $USERNAME service --status-all"
-                fi
         elif command -v initctl >/dev/null 2>&1; then
+                TOOLFAMILY="initctl"
                 SERVICETOOL="status $SERVICE"
                 LISTTOOL="initctl list"
-                if [ $USERNAME ]; then
-                    SERVICETOOL="sudo -u $USERNAME status $SERVICE"
-                    LISTTOOL="sudo -u $USERNAME initctl list"
-                fi
         elif command -v chkconfig >/dev/null 2>&1; then
-                SERVICETOOL=chkconfig
+                TOOLFAMILY="chkconfig"
+                SERVICETOOL="chkconfig"
                 LISTTOOL="chkconfig --list"
-                if [ $USERNAME ]; then
-                    SERVICETOOL="sudo -u $USERNAME chkconfig"
-                    LISTTOOL="sudo -u $USERNAME chkconfig --list"
-                fi
         elif [ -f /etc/init.d/$SERVICE ] || [ -d /etc/init.d ]; then
+                TOOLFAMILY="init.d"
                 SERVICETOOL="/etc/init.d/$SERVICE status | tail -1"
                 LISTTOOL="ls -1 /etc/init.d/"
-                if [ $USERNAME ]; then
-                    SERVICETOOL="sudo -u $USERNAME /etc/init.d/$SERVICE status | tail -1"
-                    LISTTOOL="sudo -u $USERNAME ls -1 /etc/init.d/"
-                fi
         else
                 echo "Unable to determine the system's service tool!"
                 exit 1
+        fi
+        if [ $USERNAME ]; then
+                SERVICETOOL="sudo -u $USERNAME $SERVICETOOL"
+                LISTTOOL="sudo -u $USERNAME $LISTTOOL"
         fi
 fi
 
@@ -173,14 +164,16 @@ ARGC=$#
 LIST=0
 MANUAL=0
 OS=null
+TOOLFAMILY=null
 SERVICETOOL=null
 LISTTOOL=null
 SERVICE=".*"
+CHECK_FAILED=0
 #USERNAME=nagios
 
 argcheck 1
 
-while getopts "hls:o:t:u:" OPTION
+while getopts "hls:f:o:t:u:" OPTION
 do
      case $OPTION in
          h)
@@ -192,6 +185,10 @@ do
              ;;
          s)
              SERVICE="$OPTARG"
+             ;;
+         f)
+             SERVICE="$OPTARG"
+             CHECK_FAILED=1
              ;;
          o)
              if [[ "$OPTARG" == linux ]]; then
@@ -241,6 +238,21 @@ if [ $LIST -eq 1 ]; then
         else
                 echo "OS not specified! Use \`\`-o''"
                 exit 2
+        fi
+fi
+
+if [ $CHECK_FAILED -eq 1 ]; then
+        if [ "$TOOLFAMILY" != 'systemctl' ]; then
+                echo "-f is only supported with systemctl, not $TOOLFAMILY"
+                exit $UNKNOWN
+        fi
+        STATUS_MSG=$($TOOLFAMILY is-failed $SERVICE)
+        EXIT_CODE=$?
+        echo "$SERVICE is $STATUS_MSG"
+        if [ $EXIT_CODE = 0 ]; then
+                exit $CRITICAL
+        else
+                exit $OK
         fi
 fi
 
@@ -332,9 +344,9 @@ case $STATUS_MSG in
         exit $OK
         ;;
 "")
-	echo "$SERVICE is not running: no output from service command"
-	exit $CRITICAL
-	;;
+        echo "$SERVICE is not running: no output from service command"
+        exit $CRITICAL
+        ;;
 *)
         echo "Unknown status: $STATUS_MSG"
         echo "Is there a typo in the command or service configuration?: $STATUS_MSG"
